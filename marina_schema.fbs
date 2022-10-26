@@ -1,0 +1,345 @@
+file_identifier "PRMR";
+file_extension "sketchpresentation";
+
+namespace FBPRFileMarina;
+
+// Scalars
+
+struct Point {
+  x: float;
+  y: float;
+}
+
+struct Matrix {
+  a: float;
+  b: float;
+  c: float;
+  d: float;
+  tx: float;
+  ty: float;
+}
+
+struct Size {
+  width: float;
+  height: float;
+}
+
+struct Rect {
+  origin: Point;
+  size: Size;
+}
+
+struct RGBAColor {
+  r: float;
+  g: float;
+  b: float;
+  a: float;
+}
+
+// Images
+
+table Image {
+  uuid: string ;
+  width: uint;
+  height: uint;
+  format: string (required);
+}
+
+enum InterpolationQuality: byte {
+  Default,
+  None,
+  Low,
+  Medium,
+  High
+}
+
+table ImageDrawing {
+  image_index: uint;
+  rect: Rect;
+  interpolation_quality: InterpolationQuality = High;
+}
+
+// Paths
+
+enum PathOperation: byte {
+  MoveTo,
+  LineTo,
+  QuadTo,
+  CubicTo,
+  Close
+}
+
+table Path {
+  points: [Point] (required);
+  operations: [PathOperation] (required);
+}
+
+// Stroke
+
+enum LineCap: byte {
+  Butt,
+  Round,
+  Square
+}
+
+enum LineJoin: byte {
+  Miter,
+  Round,
+  Bevel
+}
+
+enum FillRule: byte {
+  Winding,
+  EvenOdd
+}
+
+table Stroke {
+  line_width: float;
+  line_cap: LineCap;
+  line_join: LineJoin;
+  line_dash_phase: float;
+  line_dash_pattern: [float] (required);
+  miter_limit: float = 10.0;
+}
+
+// Shape
+
+table ShapePath {
+  path: Path (required);
+  fill_rule: FillRule;
+}
+
+table ShapeRect {
+   rect: Rect;
+}
+
+table ShapeEllipse {
+   rect: Rect;
+}
+
+union Shape {
+  ShapePath,
+  ShapeRect,
+  ShapeEllipse
+}
+
+// Filters
+
+table FilterColorControls {
+  saturation: float = 1;
+  brightness: float;
+  contrast: float;
+  hue: float;
+}
+
+table FilterGaussianBlur {
+  radius: float;
+}
+
+table FilterMotionBlur {
+  radius: float;
+  angle: float;
+}
+
+table FilterZoomBlur {
+  radius: float;
+  center: Point;
+}
+
+table FilterShadow {
+  shadow: Shadow (required);
+}
+
+union Filter {
+  FilterColorControls,
+  FilterGaussianBlur,
+  FilterMotionBlur,
+  FilterZoomBlur,
+  FilterShadow
+}
+
+table Shadow {
+  radius: float;
+  offset: Size;
+  // Spread is currently unused in rendering.
+  spread: float;
+  color: RGBAColor;
+}
+
+// Drawing Component
+
+table DrawingContentColor {
+  color: RGBAColor;
+}
+
+table DrawingContentLinearGradient {
+  start: Point;
+  end: Point;
+  locations: [float] (required);
+  colors: [RGBAColor] (required);
+}
+
+table DrawingContentAngularGradient {
+  center: Point;
+  angle: float;
+  locations: [float] (required);
+  colors: [RGBAColor] (required);
+}
+
+table DrawingContentRadialGradient {
+  center: Point;
+  radius: float;
+  locations: [float] (required);
+  colors: [RGBAColor] (required);
+  ellipse_transform: Matrix;
+}
+
+table DrawingContentImage {
+  image: ImageDrawing (required);
+  tile: bool;
+}
+
+// Currently not implemented, hence empty. 
+// Coming soon.
+table DrawingContentText {
+}
+
+union DrawingContent {
+  DrawingContentColor,
+  DrawingContentLinearGradient,
+  DrawingContentAngularGradient,
+  DrawingContentRadialGradient,
+  DrawingContentImage,
+  DrawingContentText
+}
+
+enum DrawingMaskMode: byte {
+  Fill,
+  Stroke,
+  Knockout
+}
+
+table DrawingMask {
+  mode: DrawingMaskMode;
+  shape: Shape;
+  stroke: Stroke;
+  /// Stroked version of shape, so web renderer can use without needing to perform stroking
+  stroked_path: Path;
+  knockout_rect: Rect;
+}
+
+table DrawingComponent {
+  content: DrawingContent (required);
+  mask: DrawingMask (required);
+}
+
+// Transform Component
+
+table TransformComponent {
+  matrix: Matrix;
+}
+
+// Blend Component
+
+enum BlendMode: byte {
+  Normal,
+  DestAtop,
+  Clear,
+  Source,
+  Darken,
+  Multiply,
+  ColorBurn,
+  Lighten,
+  Screen,
+  ColorDodge,
+  Overlay,
+  SoftLight,
+  HardLight,
+  Difference,
+  Exclusion,
+  Hue,
+  Saturation,
+  Color,
+  Luminosity,
+  PlusDarker,
+  PlusLighter
+}
+
+table BlendComponent {
+  mode: BlendMode;
+  opacity: float = 1.0;
+}
+
+// Masking
+
+enum MaskComponentMode: byte {
+  Node,
+  Clip,
+  Knockout
+}
+
+table MaskComponent {
+  mode: MaskComponentMode;
+  clip_shape: Shape;
+  node: Node;
+  knockout_rect: Rect;
+}
+
+// Layer Info Components
+
+table CachedExtentComponent {
+  rect: Rect;
+}
+
+table LayerInfoComponent {
+  bounds: Rect;
+  object_id: string (required);
+  traits: uint;
+  name: string (required);
+}
+
+// Surface and Filter Components
+
+table SurfaceComponent {
+  should_blend_source_over: bool;
+  filter: Filter (required);  
+}
+
+// Background blur should use EITHER a shape OR an image
+table BackgroundFilterComponent {
+  shape: Shape;
+  image: ImageDrawing;
+  radius: float;
+  saturation: float = 1.0;
+}
+
+// Node
+
+table Node {
+  children: [Node] (required);
+  enabled: bool = true;
+  name: string;
+  drawing: DrawingComponent;
+  layer_info: LayerInfoComponent;
+  transform: TransformComponent;
+  mask: MaskComponent;
+  blend: BlendComponent;
+  surface: SurfaceComponent;
+  background_filter: BackgroundFilterComponent;
+  cached_extent: CachedExtentComponent;
+}
+
+// Root
+
+table Presentation {
+  images: [Image] (required);
+  root: Node (required);
+
+  /// The semver of the sketch-presentation-file-format
+  /// package used to generate the file. Do not remove or alter
+  /// this root field in future schema versions, it will be used by
+  /// clients to determine compatibility.
+  schema_version: string (required);
+}
+
+root_type Presentation;
