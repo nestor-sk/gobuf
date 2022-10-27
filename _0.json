@@ -1,0 +1,71 @@
+{
+  images: [
+    {
+      uuid: "351C0C7B-82B3-4FF7-B1E5-4F8FC9C65E61-A0MTVE0IZKO-957x957",
+      width: 957,
+      height: 957,
+      format: "PNG"
+    }
+  ],
+  root: {
+    children: [
+
+    ],
+    name: "Artboard",
+    layer_info: {
+      bounds: {
+        origin: {
+          x: 0.0,
+          y: 0.0
+        },
+        size: {
+          width: 375.0,
+          height: 813.0
+        }
+      },
+      object_id: "582E216A-1AD3-469F-ABCD-A2C2566BDFCB",
+      traits: 4399104,
+      name: "Artboard"
+    },
+    transform: {
+      matrix: {
+        a: 1.0,
+        b: 0.0,
+        c: 0.0,
+        d: 1.0,
+        tx: 30.0,
+        ty: -86.0
+      }
+    },
+    mask: {
+      mode: "Clip",
+      clip_shape_type: "ShapeRect",
+      clip_shape: {
+        rect: {
+          origin: {
+            x: 0.0,
+            y: 0.0
+          },
+          size: {
+            width: 375.0,
+            height: 813.0
+          }
+        }
+      }
+    },
+    cached_extent: {
+      rect: {
+        origin: {
+          x: 0.0,
+          y: 0.0
+        },
+        size: {
+          width: 375.0,
+          height: 813.0
+        }
+      }
+    }
+  },
+  schema_version: "0.1.4"
+}
+  
